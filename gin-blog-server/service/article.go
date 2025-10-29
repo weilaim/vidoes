@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v9"
+	"go.uber.org/zap"
 )
 
 type Article struct{}
@@ -44,6 +45,8 @@ func (*Article) UpdateTop(req req.UpdateArtTop) (code int) {
 }
 
 func (*Article) GetList(req req.GetArts) resp.PageResult[[]resp.ArticleVO] {
+	// 日志
+	utils.LogWrapper(utils.GetFunctionName(), req)
 	articleList, total := articleDao.GetList(req)
 
 	likeCountMap := utils.Redis.HGetAll(KEY_ARTICLE_LIKE_COUNT) // 点赞数量 map
@@ -54,7 +57,8 @@ func (*Article) GetList(req req.GetArts) resp.PageResult[[]resp.ArticleVO] {
 		articleList[i].ViewCount = viewCountMap[article.ID]
 		articleList[i].LikeCount, _ = strconv.Atoi(likeCountMap[strconv.Itoa(article.ID)])
 	}
-
+	// 日志
+	utils.LogWrapperWithResult(utils.GetFunctionName(), articleList, nil, req)
 	return resp.PageResult[[]resp.ArticleVO]{
 		PageSize: req.PageSize,
 		PageNum:  req.PageNum,
@@ -80,6 +84,9 @@ func (*Article) GetInfo(id int) resp.ArticleDetailVO {
 
 // TODO: 添加事务
 func (*Article) SaveOrUpdate(req req.SaveOrUpdateArt, userId int) (code int) {
+	// 日志
+	utils.LogWrapper(utils.GetFunctionName(), req, zap.Int("user_id", userId))
+		
 	// 设置默认图片 (blogConfig 中配置)
 	if req.Img == "" {
 		req.Img = blogInfoService.GetBlogConfig().ArticleCover // 设置默认图片
@@ -103,6 +110,8 @@ func (*Article) SaveOrUpdate(req req.SaveOrUpdateArt, userId int) (code int) {
 
 	// 维护 [文章-标签] 关联
 	saveArticleTag(req, article.ID)
+	// 日志
+	utils.LogWrapperWithResult(utils.GetFunctionName(), article.ID, nil, req, zap.Int("user_id", userId))
 	return r.OK
 }
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import config from '@/assets/js/config'
 
 import api from '@/api'
@@ -10,7 +11,7 @@ const registerFlag = computed({
   set: val => appStore.setRegisterFlag(val),
 })
 
-let form = $ref({
+const form = ref({
   username: '',
   password: '',
   code: '',
@@ -20,13 +21,13 @@ const rules = {}
 
 // 注册
 async function handleRegister() {
-  const { username, password, code } = form
+  const { username, password, code } = form.value
   if (!code) {
     window.$message?.warning('请输入发送到邮箱的验证码')
     return
   }
 
-  if (!username || !password) {
+  if (!form.value.username || !form.value.password) {
     window.$message?.warning('请输入邮箱号和密码')
     return
   }
@@ -34,9 +35,9 @@ async function handleRegister() {
   // 腾讯滑块验证码 (在 index.html 中引入 js 文件)
   const doRegister = async () => {
     // 注册
-    await api.register(form)
+    await api.register(form.value)
     window.$notification?.success({ title: '注册成功!', duration: 1500 })
-    form = { username: '', password: '', code: '' }
+    form.value = { username: '', password: '', code: '' }
     // 打开登录弹窗
     openLogin()
   }
@@ -55,11 +56,11 @@ async function handleRegister() {
 // 发送验证码
 async function sendCode() {
   const reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/
-  if (!reg.test(form.username)) {
+  if (!reg.test(form.value.username)) {
     window.$message?.warning('请输入正确的邮箱格式')
     return
   }
-  await api.sendCode({ email: form.username })
+  await api.sendCode({ email: form.value.username })
   window.$message?.success('邮件发送成功')
 }
 

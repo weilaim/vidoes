@@ -3,23 +3,34 @@
 import InfiniteLoading from 'v3-infinite-loading'
 // Markdown => Html
 import { marked } from 'marked'
+import { onMounted, reactive, ref } from 'vue'
 
+import Announcement from './components/Announcement.vue'
 import ArticleCard from './components/ArticleCard.vue'
 import AuthorInfo from './components/AuthorInfo.vue'
-import WebsiteInfo from './components/WebsiteInfo.vue'
 import HomeBanner from './components/HomeBanner.vue'
-import Announcement from './components/Announcement.vue'
 import TalkingCarousel from './components/TalkingCarousel.vue'
+import WebsiteInfo from './components/WebsiteInfo.vue'
 
 import api from '@/api'
 
-let articleList = $ref<any>([])
-let loading = $ref(false)
+// Variables
+const articleList = ref<any>([])
+const el = ref<HTMLElement>()
+const loading = ref(false)
+const params = reactive({ page_size: 5, page_num: 1 }) // 列表加载参数
+
+// 过滤 Markdown 符号: 先转 Html 再去除 Html 标签
+function filterMdSymbol(mdStr: string) {
+  return marked(mdStr) // 转 HTML
+    .replace(/<\/?[^>]*>/g, '') // 正则去除 Html 标签
+    .replace(/[|]*\n/, '')
+    .replace(/&npsp;/gi, '')
+}
 
 // 无限加载文章
-const params = reactive({ page_size: 5, page_num: 1 }) // 列表加载参数
 const getArticlesInfinite = async ($state: any) => {
-  if (!loading) {
+  if (!loading.value) {
     try {
       const res = await api.getArticles(params)
       // 加载完成
@@ -28,9 +39,9 @@ const getArticlesInfinite = async ($state: any) => {
         return
       }
       // 非首次加载, 都是往列表中添加数据
-      articleList.push(...res.data)
+      articleList.value.push(...res.data)
       // 过滤 Markdown 符号
-      articleList.forEach((e: any) => e.content = filterMdSymbol(e.content))
+      articleList.value.forEach((e: any) => e.content = filterMdSymbol(e.content))
       params.page_num++
       $state.loaded()
     }
@@ -41,23 +52,15 @@ const getArticlesInfinite = async ($state: any) => {
 }
 
 onMounted(async () => {
-  loading = true
+  loading.value = true
   // 首次加载
   const res = await api.getArticles(params)
-  articleList = res.data
+  articleList.value = res.data
   // 过滤 Markdown 符号
-  articleList.forEach((e: any) => e.content = filterMdSymbol(e.content))
+  articleList.value.forEach((e: any) => e.content = filterMdSymbol(e.content))
   params.page_num++
-  loading = false
+  loading.value = false
 })
-
-// 过滤 Markdown 符号: 先转 Html 再去除 Html 标签
-function filterMdSymbol(mdStr: string) {
-  return marked(mdStr) // 转 HTML
-    .replace(/<\/?[^>]*>/g, '') // 正则去除 Html 标签
-    .replace(/[|]*\n/, '')
-    .replace(/&npsp;/gi, '')
-}
 </script>
 
 <template>
@@ -72,8 +75,10 @@ function filterMdSymbol(mdStr: string) {
           <TalkingCarousel />
           <!-- 文章列表 -->
           <ArticleCard
-            v-for="(item, idx) in articleList" :key="item.id"
-            :article="item" :idx="idx"
+            v-for="(item, idx) in articleList"
+            :key="item.id"
+            :article="item"
+            :idx="idx"
           />
           <!-- 无限加载 -->
           <div ref="el" f-c-c mt-35>
@@ -104,6 +109,5 @@ function filterMdSymbol(mdStr: string) {
       </n-grid>
     </div>
     <!-- 底部 -->
-    <AppFooter />
   </div>
 </template>

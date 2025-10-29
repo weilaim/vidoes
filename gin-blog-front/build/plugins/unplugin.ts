@@ -17,7 +17,6 @@ export default [
   AutoImport({
     imports: [
       'vue',
-      'vue/macros',
       'vue-router',
       '@vueuse/core',
       'pinia',

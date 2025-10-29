@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useWindowScroll, watchThrottled } from '@vueuse/core'
 
-const { y } = $(useWindowScroll())
+const { y } = useWindowScroll()
 
-let styleVal = $ref('')
-watchThrottled($$(y), () => {
-  styleVal = (y > 20) ? 'opacity: 1; transform: translateX(-40px);' : ''
+const styleVal = ref('')
+watchThrottled(y, () => {
+  styleVal.value = (y.value > 20) ? 'opacity: 1; transform: translateX(-40px);' : ''
 }, { throttle: 100 })
 
 const operations = [

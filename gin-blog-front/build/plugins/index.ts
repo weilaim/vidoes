@@ -10,8 +10,7 @@ import unplugins from './unplugin'
 export function setupVitePlugins(viteEnv: ViteEnv, isBuild: boolean): PluginOption[] {
   const plugins = [
     // https://www.npmjs.com/package/@vitejs/plugin-vue
-    // 响应式语法糖: https://cn.vuejs.org/guide/extras/reactivity-transform.html
-    Vue({ reactivityTransform: true }),
+    Vue(),
     // https://www.npmjs.com/package/vite-plugin-vuetify
     // Vuetify({ autoImport: true }),
     // https://github.com/hannoeru/vite-plugin-pages

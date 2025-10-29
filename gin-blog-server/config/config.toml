@@ -43,8 +43,8 @@ SendEmail = true # 通过邮箱发送验证码
 ExpireTime = 15  # 过期时间 (分钟)
 
 [Zap]
-Level = "error"            # 日志级别: debug, info, warn, error, dpanic, panic, fatal, 默认 info
-Format = "console"         # 输出格式: console, json
+Level = "debug"            # 日志级别: debug, info, warn, error, dpanic, panic, fatal, 默认 info
+Format = "json"         # 输出格式: console, json
 Prefix = "[GIN-VUE-BLOG] " # 日志前缀
 Directory = "log"          # 存放日志的文件夹
 ShowLine = true            # 是否显示哪行调用

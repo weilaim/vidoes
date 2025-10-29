@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import MobileSideBar from './MobileSideBar.vue'
 import { convertImgUrl } from '@/utils'
 import { useAppStore, useUserStore } from '@/store'
+import { useRouter, useRoute } from 'vue-router'
+import { useWindowScroll } from '@vueuse/core'
+import { watchThrottled } from '@vueuse/core'
 
 const [appStore, userStore] = [useAppStore(), useUserStore()]
 const [router, route] = [useRouter(), useRoute()]
@@ -62,20 +66,21 @@ const menuOptions = [
   },
 ]
 
-let navClass = $ref('nav')
-let barShow = $ref(true)
+const navClass = ref('nav')
+const barShow = ref(true)
 
 // * 监听 y 效果比添加 scroll 监听器效果更好
 // * 节流操作, 效果很好
-const { y } = $(useWindowScroll()) // 通过 $() 解构 ref
-let preY = $ref(0) // 记录上一次的 y 滚动距离
-watchThrottled($$(y), () => {
-  if (Math.abs(preY - y) >= 50) { // 小幅度滚动不进行操作
-    barShow = (y < preY)
-    navClass = (y > 60) ? 'nav-fixed' : 'nav'
-    preY = y
+const { y } = useWindowScroll() // 获取滚动距离
+const preY = ref(0) // 记录上一次的 y 滚动距离
+watchThrottled(y, () => {
+  if (Math.abs(preY.value - y.value) >= 50) { // 小幅度滚动不进行操作
+    barShow.value = (y.value < preY.value)
+    navClass.value = (y.value > 60) ? 'nav-fixed' : 'nav'
+    preY.value = y.value
   }
 }, { throttle: 100 })
+
 
 function logout() {
   userStore.logout()

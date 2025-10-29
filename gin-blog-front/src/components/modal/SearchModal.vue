@@ -1,27 +1,35 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import api from '@/api'
 import { useAppStore } from '@/store'
 const appStore = useAppStore()
 
-const searchFlag = $computed({
+const searchFlag = computed({
   get: () => appStore.searchFlag,
   set: val => appStore.setSearchFlag(val),
 })
 
 // 搜索关键字
-const keyword = $ref('')
+const keyword = ref('')
 // 搜索结果
-let articleList = $ref<any>([])
-// 防抖 watch, 节流: throttledWatch
-debouncedWatch(
-  $$(keyword),
-  () => keyword ? handleSearch() : articleList = [],
-  { debounce: 300 },
-)
+const articleList = ref<any>([])
+
+// 防抖搜索处理
+const debouncedSearch = useDebounceFn(() => {
+  if (keyword.value) {
+    handleSearch()
+  } else {
+    articleList.value = []
+  }
+}, 300)
+
+// 监听关键词变化
+watch(keyword, debouncedSearch)
 
 async function handleSearch() {
-  const res = await api.searchArticles({ keyword })
-  articleList = res.data
+  const res = await api.searchArticles({ keyword: keyword.value })
+  articleList.value = res.data
 }
 </script>
 
